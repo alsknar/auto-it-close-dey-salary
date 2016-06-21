@@ -18,6 +18,8 @@ $base = IniRead("Закінчення дня_зп.ini", "base", "base", "NotFound")           	
 $pack = IniRead("Закінчення дня_зп.ini", "pack", "pack", "NotFound")          			; полный путь к папке с архивами
 $user = "Лаврененко А.Л."                                                       		; пользователь
 $password = "" 				                                                     		; пароль
+$date = @YEAR & "_" & @MON & "_" & @MDAY												; год_месяц_день в формате YYYY_MM_DD
+$delay = 300																			; задержка ожидание активации окна (5 минут)
 
 if $sessions = 1 Then
 ; уничтожение всех существующих процессов абонентскй и админинстратора
@@ -26,7 +28,9 @@ if $sessions = 1 Then
 EndIf
 ; полный контроль в администраторе
 run($exe1 & " /D" & $base & "/N" & $user & "/P" & $password)
-WinWaitActive('Зарплата')
+If WinWaitActive('Зарплата',"", $delay) = 0 Then
+   ScreenShotExit($pack, $date)
+EndIf
 send('{ALT}')
 Sleep(1000)
 send('{DOWN}')
@@ -41,19 +45,25 @@ Sleep(1000)
 send('{ENTER}')
 Sleep(1000)
 send('{ENTER}')
-WinWaitActive('Зарплата','РЕЖИМ: Створення таблиці, якщо не існує')
+If WinWaitActive('Зарплата','РЕЖИМ: Створення таблиці, якщо не існує', "", $delay) = 0 Then
+   ScreenShotExit($pack, $date)
+EndIf
 send('!x')
 sleep(5000)
 ; перерасчет базы данных
 run($exe2 & " /D" & $base & "/N" & $user & "/P" & $password)
-WinWaitActive('Зарплата')
+If WinWaitActive('Зарплата', "", $delay) = 0 Then
+   ScreenShotExit($pack, $date)
+EndIf
 send('{ALT}')
 send('{DOWN}')
 send('{RIGHT}')
 send('{DOWN}')
 send('{ENTER}')
 send('{ENTER}')
-WinWaitActive("Виконання формули розрахунку (ОСНОВНАЯ)",'OK')
+If WinWaitActive("Виконання формули розрахунку (ОСНОВНАЯ)",'OK', $delay) = 0 Then
+   ScreenShotExit($pack, $date)
+EndIf
 send('{ENTER}')
 send('{ALT}')
 send('{RIGHT}')
@@ -68,11 +78,19 @@ send('{DOWN}')
 send('{DOWN}')
 send('{DOWN}')
 send('{ENTER}')
-$date = @YEAR & "_" & @MON & "_" & @MDAY
-WinWaitActive('Збереження даних')
+If WinWaitActive('Збереження даних', "", $delay) = 0 Then
+   ScreenShotExit($pack, $date)
+EndIf
 ; создание архива
 send($pack & $date)
 send('{ENTER}')
 Sleep(5000)
-WinWaitActive('Зарплата')
+If WinWaitActive('Зарплата', "", $delay) = 0 Then
+   ScreenShotExit($pack, $date)
+EndIf   )
 send('!x')
+
+Func ScreenShotExit($pack, $date)
+   _ScreenCapture_Capture("" & $pack & "Error_" & $date & ".jpg")
+   Exit
+EndFunc
